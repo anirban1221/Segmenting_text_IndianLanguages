@@ -73,7 +73,9 @@ if text:
 
         # Load model and tokenizer
         model = SiameseContrastiveModel().to(device)
-        model.load_state_dict(torch.load("segmenter_model.pt", map_location=device))
+        from huggingface_hub import hf_hub_download
+        model_path = hf_hub_download(repo_id="Anirban1221/hindi_segmenter_generator", filename="segmenter_model.pt")
+        model.load_state_dict(torch.load(model_path, map_location=device))
         model.eval()
 
         from transformers import AutoTokenizer
