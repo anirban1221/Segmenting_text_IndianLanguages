@@ -8,8 +8,68 @@ from indicnlp.tokenize.sentence_tokenize import sentence_split
 import numpy as np
 import networkx as nx
 from sklearn.metrics.pairwise import cosine_similarity
+import stanza
+stanza.download('hi')
+
+import stanza
+import streamlit as st
+
+# Initialize Stanza pipeline (Hindi)
+nlp = stanza.Pipeline(lang='hi', processors='tokenize,pos', use_gpu=False)
+import re
+
+def clean_text(text):
+    """
+    Removes unwanted characters that can affect segmentation or POS tagging.
+    """
+    # Remove special symbols, extra spaces, newlines
+    text = re.sub(r'[“”"\'‘’]', '', text)  # remove fancy quotes
+    text = re.sub(r'[\[\]{}<>]', '', text)  # brackets
+    text = re.sub(r'[•–—…]', '', text)  # bullet/emdash/ellipsis
+    text = re.sub(r'\s+', ' ', text).strip()  # extra whitespace
+    return text
+
+def pos_aware_subsegmentation(part):
+    """
+    Splits a graph-based 'part' into subsegments using POS-aware logic.
+    """
+    part = clean_text(part)
+    doc = nlp(part)
+
+    sentence_data = []
+    for sent in doc.sentences:
+        words = [word.text for word in sent.words]
+        pos_tags = [word.upos for word in sent.words]
+        sentence = " ".join(words)
+        first_pos = pos_tags[0] if pos_tags else ""
+        sentence_data.append((sentence, first_pos))
+
+    # POS-aware subsegmentation
+    subsegments = []
+    current_sub = []
+
+    for sentence, pos_tags in sentence_data:
+        contains_pron = "PRON" in pos_tags
+        # contains_conj = any(pos in {"CCONJ", "SCONJ"} for pos in pos_tags)
+
+        if contains_pron :
+            # Do not split — continue with current subsegment
+            current_sub.append(sentence)
+        else:
+            # Start new segment
+            if current_sub:
+                subsegments.append(" ".join(current_sub))
+            current_sub = [sentence]
+
+    # Final append
+    if current_sub:
+        subsegments.append(" ".join(current_sub))
+
+    return subsegments
+
 # ----- App Title -----
-st.image("ChatGPT Image Apr 13, 2025, 07_58_32 PM.png", use_container_width=False,width=400)
+st.title("Vakya")
+st.subheader("translation made faster and easier")
 
 
 # ----- Sidebar Options -----
@@ -123,22 +183,30 @@ if text:
             communities = list(greedy_modularity_communities(G))
 
     # Sort and return segments
-            segments = []
+            parts = []
             for community in sorted(communities, key=lambda x: min(x)):
                 sorted_sents = [sentences[i] for i in sorted(community)]
-                segments.append(" ".join(sorted_sents))
+                parts.append(" ".join(sorted_sents))
 
-            return segments
+            return parts
 
 # Test segmentation
-        segments = segment_text_graph(sentences, embeddings)
+        parts = segment_text_graph(sentences, embeddings)
+        final_segments = []
+        for part in parts:
+            sub_segs = pos_aware_subsegmentation(part)
+            final_segments.extend(sub_segs)
         # for i, seg in enumerate(segments):
         #     print(f"[Segment {i+1}]: {seg}")
 
         
         st.subheader(" Segmented Output")
+        for part_idx, part in enumerate(parts, 1):
+            st.markdown(f"### Part {part_idx}")
 
-        for idx, seg in enumerate(segments, start=1):
-            st.markdown(f"### Segment {idx}")
-            st.markdown(f"{seg}\n")
+        # Subsegment this part using POS-aware rules
+            subsegments = pos_aware_subsegmentation(part)
+
+            for seg_idx, seg in enumerate(subsegments, 1):
+                st.markdown(f"**Segment {seg_idx}:** {seg}")
 
