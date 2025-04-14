@@ -1,0 +1,11 @@
+streamlit
+PyPDF2
+python-docx
+torch
+transformers
+indic-nlp-library
+numpy
+networkx
+scikit-learn
+stanza
+huggingface_hub
