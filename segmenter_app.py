@@ -9,8 +9,7 @@ import numpy as np
 import networkx as nx
 from sklearn.metrics.pairwise import cosine_similarity
 import stanza
-if not os.path.exists(os.path.expanduser('~/.stanza/')):
-    stanza.download('hi')
+stanza.download('hi')
 
 import stanza
 import streamlit as st
