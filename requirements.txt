@@ -9,4 +9,3 @@ networkx
 scikit-learn
 stanza
 huggingface_hub
-os
