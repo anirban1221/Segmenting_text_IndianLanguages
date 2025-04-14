@@ -2,7 +2,7 @@ streamlit
 PyPDF2
 python-docx
 torch
-transformers
+transformers>=4.36.2
 indic-nlp-library
 numpy
 networkx
