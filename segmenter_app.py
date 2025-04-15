@@ -134,7 +134,7 @@ if text:
         # Load model and tokenizer
         model = SiameseContrastiveModel().to(device)
         from huggingface_hub import hf_hub_download
-        model_path = hf_hub_download(repo_id="Anirban1221/hindi_segmenter_generator", filename="segmenter_model.pt")
+        model_path = hf_hub_download(repo_id="Anirban1221/hindiSentence_Embedding_generator", filename="segmenter_model_new.pt")
         model.load_state_dict(torch.load(model_path, map_location=device))
         model.eval()
 
